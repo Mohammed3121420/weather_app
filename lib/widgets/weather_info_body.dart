@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import '../provider/weather_provider.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:weather_app/cubit/get_weather_cubit_cubit.dart';
 import 'custom_text.dart';
 
 class WeatherInfoBody extends StatelessWidget {
@@ -8,39 +8,14 @@ class WeatherInfoBody extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final weatherProvider = context.watch<WeatherProvider>();
-
-    if (weatherProvider.isLoading) {
-      return const Center(child: CircularProgressIndicator());
-    }
-
-    if (weatherProvider.errorMessage != null) {
-      return Center(
-        child: CustomText(
-          text: 'Error: ${weatherProvider.errorMessage}',
-          style: const TextStyle(fontSize: 18, color: Colors.red),
-        ),
-      );
-    }
-
-    if (weatherProvider.weatherModel == null) {
-      return const Center(
-        child: CustomText(
-          text: "No weather data available.",
-          style: TextStyle(fontSize: 18),
-        ),
-      );
-    }
-
-    final weatherModel = weatherProvider.weatherModel!;
-
+    var weatherModel = BlocProvider.of<GetWeatherCubit>(context).weatherModel;
     return Container(
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [
-            weatherModel.getThemeColor(),
-            weatherModel.getThemeColor()[300]!,
-            weatherModel.getThemeColor()[100]!,
+            weatherModel!.getThemeColor(),
+            weatherModel!.getThemeColor()[300]!,
+            weatherModel!.getThemeColor()[100]!,
           ],
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
@@ -52,14 +27,14 @@ class WeatherInfoBody extends StatelessWidget {
           const Spacer(flex: 3),
           Expanded(
             child: CustomText(
-              text: weatherModel.cityName,
+              text: weatherModel.cityName ?? 'Unknown City',
               style: const TextStyle(fontSize: 32, fontWeight: FontWeight.bold),
             ),
           ),
           Expanded(
             child: CustomText(
               text:
-                  'updated at : ${weatherModel.date.hour}:${weatherModel.date.minute.toString().padLeft(2, '0')}',
+                  'updated at : ${weatherModel.date.hour.toString()}:${weatherModel.date.minute.toString()}',
               style: const TextStyle(fontSize: 22),
             ),
           ),
@@ -71,7 +46,7 @@ class WeatherInfoBody extends StatelessWidget {
                   ? Image.network("https:${weatherModel.image}")
                   : Image.asset(weatherModel.getImage()),
               CustomText(
-                text: '${weatherModel.temp.toInt()}°',
+                text: weatherModel.temp.toInt().toString(),
                 style: const TextStyle(
                   fontWeight: FontWeight.bold,
                   fontSize: 32,
@@ -79,8 +54,8 @@ class WeatherInfoBody extends StatelessWidget {
               ),
               Column(
                 children: [
-                  CustomText(text: 'maxTemp: ${weatherModel.maxTemp.toInt()}°'),
-                  CustomText(text: 'minTemp: ${weatherModel.minTemp.toInt()}°'),
+                  CustomText(text: 'maxTemp:${weatherModel.maxTemp.toInt()}'),
+                  CustomText(text: 'minTemp : ${weatherModel.minTemp.toInt()}'),
                 ],
               ),
             ],

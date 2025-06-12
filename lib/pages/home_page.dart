@@ -1,18 +1,28 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:weather_app/cubit/get_weather_cubit_cubit.dart';
 import 'package:weather_app/pages/search_page.dart';
 import 'package:weather_app/widgets/custom_text.dart';
-import '../provider/weather_provider.dart';
+import '../models/weather_model.dart';
 import '../widgets/no_weather_body.dart';
 import '../widgets/weather_info_body.dart';
 
-class HomePage extends StatelessWidget {
+class HomePage extends StatefulWidget {
   const HomePage({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    final weatherProvider = context.watch<WeatherProvider>();
+  State<HomePage> createState() => _HomePageState();
+}
 
+class _HomePageState extends State<HomePage> {
+  WeatherModel? weatherData;
+
+  void updateUi() {
+    setState(() {});
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         actions: [
@@ -20,7 +30,9 @@ class HomePage extends StatelessWidget {
             onPressed: () async {
               await Navigator.push(
                 context,
-                MaterialPageRoute(builder: (ctx) => SearchPage()),
+                MaterialPageRoute(
+                  builder: (ctx) => SearchPage(updateUi: updateUi),
+                ),
               );
             },
             icon: const Icon(Icons.search),
@@ -28,18 +40,14 @@ class HomePage extends StatelessWidget {
         ],
         title: const CustomText(text: "Weather App"),
       ),
-      body: Builder(
-        builder: (context) {
-          if (weatherProvider.isLoading) {
-            return const Center(child: CircularProgressIndicator());
-          } else if (weatherProvider.weatherModel != null) {
-            return const WeatherInfoBody();
-          } else if (weatherProvider.errorMessage != null) {
-            return Center(
-              child: Text("Error: ${weatherProvider.errorMessage}"),
-            );
-          } else {
+      body: BlocBuilder<GetWeatherCubit, WeatherState>(
+        builder: (context, state) {
+          if (state is WeatherInitial) {
             return const NoWeatherBody();
+          } else if (state is WeatherLoadedState) {
+            return WeatherInfoBody();
+          } else {
+            return const Text("oops there was  an error");
           }
         },
       ),
